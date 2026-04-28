@@ -676,16 +676,17 @@ $("verifyBtn").addEventListener("click", async () => {
   statusEl.textContent = t("verifying");
 
   try {
-    // Scratch profile comments are public — no CORS issues
-    const res = await fetch(
-      `https://api.scratch.mit.edu/users/ItsMasonnn/comments?limit=20`,
-      { headers: { "x-requested-with": "XMLHttpRequest" } }
-    );
-    if (!res.ok) throw new Error("api");
-    const comments = await res.json();
-    const found = comments.some(c =>
-      c.content && c.content.toUpperCase().includes(verifyCode)
-    );
+    // scratch.mit.edu/site-api allows CORS from any origin unlike api.scratch.mit.edu
+    // Fetch up to 3 pages of comments to catch recent posts
+    let found = false;
+    for (let page = 1; page <= 3 && !found; page++) {
+      const res = await fetch(
+        `https://scratch.mit.edu/site-api/comments/user/ItsMasonnn/?page=${page}&limit=20`
+      );
+      if (!res.ok) throw new Error("api");
+      const html = await res.text();
+      if (html.toUpperCase().includes(verifyCode)) found = true;
+    }
     if (found) {
       creditUnlocked = true;
       creditEnabled  = false;
