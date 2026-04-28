@@ -92,6 +92,45 @@ button:not(:disabled):hover { opacity: 0.75; }
 .btn-dl { background: var(--btn-primary-bg); color: var(--btn-primary-fg); }
 .btn-reset { background: transparent; color: var(--btn-secondary-fg); border: 1px solid var(--btn-secondary-border); }
 .hidden { display: none !important; }
+
+/* credit toggle row */
+.credit-row { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; }
+.credit-status { font-size:0.75rem; color:var(--text-muted); flex:1; }
+.btn-credit { font-size:0.72rem; font-family:inherit; padding:0.25rem 0.65rem; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; white-space:nowrap; }
+.btn-credit:hover { background:var(--surface); color:var(--text); }
+
+/* modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; z-index:100; }
+body.dark .modal-backdrop { background:rgba(0,0,0,0.65); }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:1.5rem 1.5rem 1.25rem; max-width:360px; width:90%; display:flex; flex-direction:column; gap:0.85rem; }
+.modal-title { font-size:0.95rem; font-weight:600; color:var(--text); }
+.modal-body { font-size:0.8rem; color:var(--text-muted); line-height:1.55; }
+.modal-link { display:block; text-align:center; padding:0.55rem 1rem; background:var(--btn-primary-bg); color:var(--btn-primary-fg); border-radius:5px; font-size:0.8rem; font-weight:500; text-decoration:none; }
+.modal-link:hover { opacity:0.8; }
+.modal-link-secondary { background:transparent; color:var(--text); border:1px solid var(--border); font-weight:400; }
+.modal-link-secondary:hover { background:var(--surface); opacity:1; }
+.modal-verify-row { display:flex; gap:0.5rem; }
+.modal-input { flex:1; padding:0.4rem 0.65rem; border-radius:5px; border:1px solid var(--border); background:var(--log-bg); color:var(--text); font-size:0.8rem; font-family:inherit; outline:none; }
+.modal-input:focus { border-color:var(--text); }
+.btn-verify { padding:0.4rem 0.85rem; border-radius:5px; border:none; background:var(--btn-primary-bg); color:var(--btn-primary-fg); font-size:0.79rem; font-weight:500; font-family:inherit; cursor:pointer; white-space:nowrap; }
+.btn-verify:hover { opacity:0.8; }
+.btn-verify:disabled { opacity:0.35; cursor:not-allowed; }
+.modal-status { font-size:0.75rem; min-height:1rem; }
+.modal-status.ok  { color:#2a8a50; }
+.modal-status.err { color:#a03020; }
+body.dark .modal-status.ok  { color:#38b86a; }
+body.dark .modal-status.err { color:#d04535; }
+.btn-modal-cancel { align-self:center; font-size:0.72rem; font-family:inherit; padding:0.2rem 0.5rem; border:none; background:transparent; color:var(--text-faint); cursor:pointer; }
+.btn-modal-cancel:hover { color:var(--text-muted); }
+.modal-step2-label { font-size:0.75rem; color:var(--text-muted); margin-top:0.25rem; }
+.modal-code-row { display:flex; align-items:center; gap:0.5rem; }
+.modal-code { flex:1; font-family:monospace; font-size:1.3rem; font-weight:700; letter-spacing:0.15em; color:var(--text); background:var(--log-bg); border:1px solid var(--border); border-radius:5px; padding:0.45rem 0.75rem; text-align:center; }
+.btn-copy { font-size:0.72rem; font-family:inherit; padding:0.3rem 0.65rem; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; white-space:nowrap; }
+.btn-copy:hover { background:var(--surface); color:var(--text); }
+.modal-verify-row { display:flex; gap:0.5rem; align-items:center; }
+.btn-verify { flex:1; padding:0.5rem 0.85rem; border-radius:5px; border:none; background:var(--btn-primary-bg); color:var(--btn-primary-fg); font-size:0.79rem; font-weight:500; font-family:inherit; cursor:pointer; }
+.btn-verify:hover { opacity:0.8; }
+.btn-verify:disabled { opacity:0.35; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -137,9 +176,37 @@ button:not(:disabled):hover { opacity: 0.75; }
       <div class="clabel" id="txt-preview">Frame preview</div>
       <div class="preview-strip" id="previewStrip"></div>
     </div>
+    <div class="credit-row">
+      <span class="credit-status" id="creditStatus"></span>
+      <button class="btn-credit" id="creditToggle"></button>
+    </div>
     <div class="btn-row">
       <button class="btn-dl" id="dlBtn" disabled><span id="txt-dl">Download .sb3</span></button>
       <button class="btn-reset" id="resetBtn"><span id="txt-reset">Convert another</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Follow gate modal -->
+<div id="followModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-title" id="txt-modal-title">Remove credit frame?</div>
+    <div class="modal-body" id="txt-modal-body">To turn off the end credit, follow the creator on Scratch, then post this code as a comment on their profile to verify.</div>
+    <a class="modal-link" id="followLink" href="https://scratch.mit.edu/users/ItsMasonnn/" target="_blank" rel="noopener">
+      <span id="txt-follow-btn">Step 1 — Follow @ItsMasonnn on Scratch ↗</span>
+    </a>
+    <div class="modal-step2-label" id="txt-step2">Step 2 — Post this code as a comment on their profile:</div>
+    <div class="modal-code-row">
+      <span class="modal-code" id="verifyCodeDisplay"></span>
+      <button class="btn-copy" id="copyCodeBtn" title="Copy code">Copy</button>
+    </div>
+    <a class="modal-link modal-link-secondary" href="https://scratch.mit.edu/users/ItsMasonnn/#comments" target="_blank" rel="noopener">
+      <span id="txt-comment-btn">Open comment section ↗</span>
+    </a>
+    <div class="modal-status" id="verifyStatus"></div>
+    <div class="modal-verify-row">
+      <button class="btn-verify" id="verifyBtn"><span id="txt-verify">I followed &amp; commented — verify</span></button>
+      <button class="btn-modal-cancel" id="modalCancel"><span id="txt-cancel">Cancel</span></button>
     </div>
   </div>
 </div>
@@ -229,6 +296,45 @@ async function buildSB3(frames, fps, wavBuffer, frameCount) {
     });
   }
 
+  // ── Credit end-frame ────────────────────────────────────────────────────
+  if (creditEnabled) {
+    const lastFrame = frames[frames.length - 1];
+    const creditCanvas = document.createElement("canvas");
+    creditCanvas.width  = lastFrame.width;
+    creditCanvas.height = lastFrame.height;
+    const ctx = creditCanvas.getContext("2d");
+    ctx.drawImage(lastFrame, 0, 0);
+
+    const bh = Math.max(22, Math.round(lastFrame.height * 0.11));
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(0, lastFrame.height - bh, lastFrame.width, bh);
+
+    const fontSize = Math.max(7, Math.round(bh * 0.34));
+    ctx.textBaseline = "middle";
+    ctx.textAlign    = "center";
+    const cx = lastFrame.width / 2;
+
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = `${fontSize}px sans-serif`;
+    const line1 = lang === "ja" ? "作成ツール：" : "Converted with";
+    ctx.fillText(line1, cx, lastFrame.height - bh * 0.72);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.round(fontSize * 1.1)}px sans-serif`;
+    ctx.fillText("joeclickavit.github.io/Flipnote2ScratchProject", cx, lastFrame.height - bh * 0.28);
+
+    const creditBlob = await new Promise(r => creditCanvas.toBlob(r, "image/png"));
+    const creditAb   = await creditBlob.arrayBuffer();
+    const creditId   = await sha256id(creditAb);
+    zip.file(creditId + ".png", creditAb);
+    costumes.push({
+      name: "credit", bitmapResolution:1, dataFormat:"png",
+      assetId: creditId, md5ext: creditId+".png",
+      rotationCenterX: creditCanvas.width/2, rotationCenterY: creditCanvas.height/2
+    });
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   let sounds = [];
   let soundId = null;
   if (wavBuffer) {
@@ -241,27 +347,38 @@ async function buildSB3(frames, fps, wavBuffer, frameCount) {
     }];
   }
 
+  // Scratch script:
+  //   when flag clicked → reset timer → switch to frame_0 → [play sound] →
+  //   repeat (frameCount-1) { wait until timer > costumeNum*delay; next costume } →
+  //   switch costume to "credit"   ← stays on credit frame forever
   const blocks = {};
-  blocks["hat"] = { opcode:"event_whenflagclicked", next:"resettimer", parent:null, inputs:{}, fields:{}, shadow:false, topLevel:true, x:50, y:50 };
+  blocks["hat"]        = { opcode:"event_whenflagclicked", next:"resettimer", parent:null, inputs:{}, fields:{}, shadow:false, topLevel:true, x:50, y:50 };
   blocks["resettimer"] = { opcode:"sensing_resettimer", next:"costume0", parent:"hat", inputs:{}, fields:{}, shadow:false, topLevel:false };
-  blocks["costume0"] = { opcode:"looks_switchcostumeto", next:soundId?"playsound":"repeat", parent:"resettimer", inputs:{COSTUME:[1,"costume0menu"]}, fields:{}, shadow:false, topLevel:false };
+  blocks["costume0"]   = { opcode:"looks_switchcostumeto", next:soundId?"playsound":"repeat", parent:"resettimer", inputs:{COSTUME:[1,"costume0menu"]}, fields:{}, shadow:false, topLevel:false };
   blocks["costume0menu"] = { opcode:"looks_costume", next:null, parent:"costume0", inputs:{}, fields:{COSTUME:["frame_0",null]}, shadow:true, topLevel:false };
 
   if (soundId) {
-    blocks["playsound"] = { opcode:"sound_play", next:"repeat", parent:"costume0", inputs:{SOUND_MENU:[1,"playsoundmenu"]}, fields:{}, shadow:false, topLevel:false };
+    blocks["playsound"]     = { opcode:"sound_play", next:"repeat", parent:"costume0", inputs:{SOUND_MENU:[1,"playsoundmenu"]}, fields:{}, shadow:false, topLevel:false };
     blocks["playsoundmenu"] = { opcode:"sound_sounds_menu", next:null, parent:"playsound", inputs:{}, fields:{SOUND_MENU:["bgm",null]}, shadow:true, topLevel:false };
   }
 
   const repeatParent = soundId ? "playsound" : "costume0";
-  blocks["repeat"] = { opcode:"control_repeat", next:null, parent:repeatParent, inputs:{TIMES:[1,"repeatcount"], SUBSTACK:[2,"waituntil"]}, fields:{}, shadow:false, topLevel:false };
+  const afterRepeat  = creditEnabled ? "showcredit" : null;
+  blocks["repeat"]      = { opcode:"control_repeat", next:afterRepeat, parent:repeatParent, inputs:{TIMES:[1,"repeatcount"], SUBSTACK:[2,"waituntil"]}, fields:{}, shadow:false, topLevel:false };
   blocks["repeatcount"] = { opcode:"math_number", next:null, parent:"repeat", inputs:{}, fields:{NUM:[String(frameCount-1),null]}, shadow:true, topLevel:false };
-  blocks["waituntil"] = { opcode:"control_wait_until", next:"nextcostume", parent:"repeat", inputs:{CONDITION:[2,"timercheck"]}, fields:{}, shadow:false, topLevel:false };
-  blocks["timercheck"] = { opcode:"operator_gt", next:null, parent:"waituntil", inputs:{OPERAND1:[2,"timerval"], OPERAND2:[2,"targettime"]}, fields:{}, shadow:false, topLevel:false };
-  blocks["timerval"] = { opcode:"sensing_timer", next:null, parent:"timercheck", inputs:{}, fields:{}, shadow:false, topLevel:false };
-  blocks["targettime"] = { opcode:"operator_multiply", next:null, parent:"timercheck", inputs:{NUM1:[2,"costumenum"], NUM2:[1,"delayval"]}, fields:{}, shadow:false, topLevel:false };
-  blocks["costumenum"] = { opcode:"looks_costumenumbername", next:null, parent:"targettime", inputs:{}, fields:{NUMBER_NAME:["number",null]}, shadow:false, topLevel:false };
-  blocks["delayval"] = { opcode:"math_number", next:null, parent:"targettime", inputs:{}, fields:{NUM:[delay.toFixed(6),null]}, shadow:true, topLevel:false };
+  blocks["waituntil"]   = { opcode:"control_wait_until", next:"nextcostume", parent:"repeat", inputs:{CONDITION:[2,"timercheck"]}, fields:{}, shadow:false, topLevel:false };
+  blocks["timercheck"]  = { opcode:"operator_gt", next:null, parent:"waituntil", inputs:{OPERAND1:[2,"timerval"], OPERAND2:[2,"targettime"]}, fields:{}, shadow:false, topLevel:false };
+  blocks["timerval"]    = { opcode:"sensing_timer", next:null, parent:"timercheck", inputs:{}, fields:{}, shadow:false, topLevel:false };
+  blocks["targettime"]  = { opcode:"operator_multiply", next:null, parent:"timercheck", inputs:{NUM1:[2,"costumenum"], NUM2:[1,"delayval"]}, fields:{}, shadow:false, topLevel:false };
+  blocks["costumenum"]  = { opcode:"looks_costumenumbername", next:null, parent:"targettime", inputs:{}, fields:{NUMBER_NAME:["number",null]}, shadow:false, topLevel:false };
+  blocks["delayval"]    = { opcode:"math_number", next:null, parent:"targettime", inputs:{}, fields:{NUM:[delay.toFixed(6),null]}, shadow:true, topLevel:false };
   blocks["nextcostume"] = { opcode:"looks_nextcostume", next:null, parent:"waituntil", inputs:{}, fields:{}, shadow:false, topLevel:false };
+
+  // After the repeat: switch to the credit costume and stay there (only if credit is enabled)
+  if (creditEnabled) {
+    blocks["showcredit"]     = { opcode:"looks_switchcostumeto", next:null, parent:"repeat", inputs:{COSTUME:[1,"showcreditmenu"]}, fields:{}, shadow:false, topLevel:false };
+    blocks["showcreditmenu"] = { opcode:"looks_costume", next:null, parent:"showcredit", inputs:{}, fields:{COSTUME:["credit",null]}, shadow:true, topLevel:false };
+  }
 
   // Use the first frame as the Stage backdrop so Scratch shows it as the project thumbnail
   const firstFrameBlob = await new Promise(r => frames[0].toBlob(r, "image/png"));
@@ -313,6 +430,21 @@ const strings = {
     infoLabels:  ["Format","Frames","FPS","Duration","Resolution","Audio"],
     audioYes:    "✓ included",
     audioNo:     "none",
+    creditOn:    "Credit frame: on",
+    creditOff:   "Credit frame: off",
+    creditToggleOn:  "Turn off",
+    creditToggleOff: "Turn on",
+    modalTitle:  "Remove credit frame?",
+    modalBody:   "To turn off the end credit, follow the creator on Scratch, then post this code as a comment on their profile to verify.",
+    followBtn:   "Step 1 — Follow @ItsMasonnn on Scratch ↗",
+    verifyPlaceholder: "Your Scratch username",
+    verify:      "I followed & commented — verify",
+    cancel:      "Cancel",
+    verifying:   "Checking…",
+    verifyOk:    "✓ Verified! Credit frame unlocked.",
+    verifyNotFound:     "Code not found in recent comments. Make sure you posted it!",
+
+    verifyError: "Couldn't reach Scratch API. Try again.",
   },
   ja: {
     title:       "フリップノート → Scratch",
@@ -334,6 +466,21 @@ const strings = {
     infoLabels:  ["形式","フレーム","FPS","長さ","解像度","音声"],
     audioYes:    "✓ 含む",
     audioNo:     "なし",
+    creditOn:    "クレジットフレーム: オン",
+    creditOff:   "クレジットフレーム: オフ",
+    creditToggleOn:  "オフにする",
+    creditToggleOff: "オンにする",
+    modalTitle:  "クレジットフレームを削除？",
+    modalBody:   "クレジットフレームをオフにするには、Scratchでクリエイターをフォローし、このコードをプロフィールにコメントしてください。",
+    followBtn:   "ステップ1 — Scratchで @ItsMasonnn をフォロー ↗",
+    verifyPlaceholder: "Scratchのユーザー名",
+    verify:      "フォローしてコメントした — 確認する",
+    cancel:      "キャンセル",
+    verifying:   "確認中…",
+    verifyOk:    "✓ 確認済み！クレジットフレームが解除されました。",
+    verifyNotFound:     "最近のコメントにコードが見つかりませんでした。",
+
+    verifyError: "Scratch APIに接続できませんでした。",
   }
 };
 
@@ -354,6 +501,17 @@ function applyLang() {
   $("darkToggle").textContent     = document.body.classList.contains("dark") ? t("light") : t("dark");
   $("langEn").classList.toggle("active", lang === "en");
   $("langJa").classList.toggle("active", lang === "ja");
+  // modal strings
+  $("txt-modal-title").textContent  = t("modalTitle");
+  $("txt-modal-body").textContent   = t("modalBody");
+  $("txt-follow-btn").textContent   = t("followBtn");
+  if ($("txt-step2")) $("txt-step2").textContent = lang === "ja" ? "ステップ2 — プロフィールにこのコードをコメント:" : "Step 2 — Post this code as a comment on their profile:";
+  if ($("txt-comment-btn")) $("txt-comment-btn").textContent = lang === "ja" ? "コメント欄を開く ↗" : "Open comment section ↗";
+
+  $("txt-verify").textContent       = t("verify");
+  $("txt-cancel").textContent       = t("cancel");
+  // credit row
+  updateCreditUI();
   // re-render info row if visible
   if (lastResult) showResults(lastResult);
 }
@@ -362,8 +520,7 @@ $("langEn").addEventListener("click", () => { lang = "en"; applyLang(); });
 $("langJa").addEventListener("click", () => { lang = "ja"; applyLang(); });
 
 // ── Dark mode ─────────────────────────────────────────────────────────────
-const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-if (prefersDark) document.body.classList.add("dark");
+document.body.classList.add("dark"); // dark by default
 
 $("darkToggle").addEventListener("click", () => {
   document.body.classList.toggle("dark");
@@ -439,6 +596,7 @@ async function go(file) {
 
 function showResults(r) {
   $("procLabel").textContent = t("complete");
+  updateCreditUI();
   const hasAudio = !!r.wavBuffer;
   const labels = t("infoLabels");
   const values = [r.format, r.frameCount, r.fps, r.duration.toFixed(1)+"s", r.w+"×"+r.h, hasAudio ? t("audioYes") : t("audioNo")];
@@ -456,7 +614,98 @@ function showResults(r) {
   $("dlBtn").disabled = false;
 }
 
-// init lang display
+// ── Credit frame toggle + follow gate ────────────────────────────────────
+let creditEnabled = true;
+let creditUnlocked = false; // unlocked by verifying Scratch follow
+
+function updateCreditUI() {
+  const statusEl = $("creditStatus");
+  const btnEl    = $("creditToggle");
+  if (!statusEl || !btnEl) return;
+  statusEl.textContent = creditEnabled ? t("creditOn") : t("creditOff");
+  btnEl.textContent    = creditEnabled ? t("creditToggleOn") : t("creditToggleOff");
+}
+
+$("creditToggle").addEventListener("click", () => {
+  if (creditEnabled) {
+    // Trying to turn OFF — need to be unlocked
+    if (creditUnlocked) {
+      creditEnabled = false;
+      updateCreditUI();
+    } else {
+      openModal();
+    }
+  } else {
+    // Turning back ON is always free
+    creditEnabled = true;
+    updateCreditUI();
+  }
+});
+
+function openModal() {
+  $("followModal").classList.remove("hidden");
+  $("verifyStatus").textContent  = "";
+  $("verifyStatus").className    = "modal-status";
+  $("verifyBtn").disabled        = false;
+  $("verifyCodeDisplay").textContent = verifyCode;
+}
+
+$("copyCodeBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(verifyCode).then(() => {
+    $("copyCodeBtn").textContent = "Copied!";
+    setTimeout(() => $("copyCodeBtn").textContent = "Copy", 1500);
+  });
+});
+
+function closeModal() {
+  $("followModal").classList.add("hidden");
+}
+
+$("modalCancel").addEventListener("click", closeModal);
+$("followModal").addEventListener("click", e => { if (e.target === $("followModal")) closeModal(); });
+
+// Generate a unique code per session (8 hex chars)
+const verifyCode = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+  .map(b => b.toString(16).padStart(2,"0")).join("").toUpperCase();
+
+$("verifyBtn").addEventListener("click", async () => {
+  const statusEl = $("verifyStatus");
+  const btn      = $("verifyBtn");
+  btn.disabled         = true;
+  statusEl.className   = "modal-status";
+  statusEl.textContent = t("verifying");
+
+  try {
+    // Scratch profile comments are public — no CORS issues
+    const res = await fetch(
+      `https://api.scratch.mit.edu/users/ItsMasonnn/comments?limit=20`,
+      { headers: { "x-requested-with": "XMLHttpRequest" } }
+    );
+    if (!res.ok) throw new Error("api");
+    const comments = await res.json();
+    const found = comments.some(c =>
+      c.content && c.content.toUpperCase().includes(verifyCode)
+    );
+    if (found) {
+      creditUnlocked = true;
+      creditEnabled  = false;
+      updateCreditUI();
+      statusEl.className   = "modal-status ok";
+      statusEl.textContent = t("verifyOk");
+      setTimeout(closeModal, 1800);
+    } else {
+      statusEl.className   = "modal-status err";
+      statusEl.textContent = t("verifyNotFound");
+      btn.disabled = false;
+    }
+  } catch {
+    statusEl.className   = "modal-status err";
+    statusEl.textContent = t("verifyError");
+    btn.disabled = false;
+  }
+});
+
+// ── init lang display
 applyLang();
 </script>
 </body>
