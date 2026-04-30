@@ -216,6 +216,7 @@ function frameToCanvas(parser, frameIdx) {
   const layers = parser.decodeFrame(frameIdx);
   const palette = parser.getFramePalette(frameIdx);
   const order = parser.getFrameLayerOrder(frameIdx);
+  const numLayerColors = parser.constructor.numLayerColors ?? 2; // PPM=1, KWZ=2
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
@@ -227,11 +228,12 @@ function frameToCanvas(parser, frameIdx) {
   }
   for (const li of [...order].reverse()) {
     const layer = layers[li];
-    const c1 = palette[1+li*2], c2 = palette[2+li*2];
+    const c1 = palette[1 + li * numLayerColors];
+    const c2 = numLayerColors > 1 ? palette[2 + li * numLayerColors] : null;
     for (let i = 0; i < W*H; i++) {
       const v = layer[i];
-      if (v===1) { px[i*4]=c1[0]; px[i*4+1]=c1[1]; px[i*4+2]=c1[2]; px[i*4+3]=255; }
-      else if (v===2) { px[i*4]=c2[0]; px[i*4+1]=c2[1]; px[i*4+2]=c2[2]; px[i*4+3]=255; }
+      if (v===1 && c1) { px[i*4]=c1[0]; px[i*4+1]=c1[1]; px[i*4+2]=c1[2]; px[i*4+3]=255; }
+      else if (v===2 && c2) { px[i*4]=c2[0]; px[i*4+1]=c2[1]; px[i*4+2]=c2[2]; px[i*4+3]=255; }
     }
   }
   ctx.putImageData(img, 0, 0);
