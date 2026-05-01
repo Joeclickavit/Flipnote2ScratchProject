@@ -217,6 +217,9 @@ function frameToCanvas(parser, frameIdx) {
   const palette = parser.getFramePalette(frameIdx);
   const order = parser.getFrameLayerOrder(frameIdx);
   const numLayerColors = parser.constructor.numLayerColors ?? 2; // PPM=1, KWZ=2
+  // PPM: getFrameLayerOrder returns layers already in back-to-front paint order ([1,0] = paint 1 first, 0 on top)
+  // KWZ: getFrameLayerOrder returns front-to-back (highest depth first), so we reverse to paint back-to-front
+  const paintOrder = numLayerColors === 1 ? [...order] : [...order].reverse();
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
@@ -226,7 +229,7 @@ function frameToCanvas(parser, frameIdx) {
   for (let i = 0; i < W*H; i++) {
     px[i*4]=paper[0]; px[i*4+1]=paper[1]; px[i*4+2]=paper[2]; px[i*4+3]=255;
   }
-  for (const li of [...order].reverse()) {
+  for (const li of paintOrder) {
     const layer = layers[li];
     const c1 = palette[1 + li * numLayerColors];
     const c2 = numLayerColors > 1 ? palette[2 + li * numLayerColors] : null;
